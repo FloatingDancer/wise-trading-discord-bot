@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
 import { FinanceService } from '../services/finance.js';
 import { AlertManager } from '../services/alertManager.js';
 import { formatCurrency } from '../utils/format.js';
@@ -41,8 +41,31 @@ export const AlertCommand = {
           option.setName('id')
             .setDescription('ID Alarm yang ingin dihapus')
             .setRequired(true)
+            .setAutocomplete(true)
         )
     ),
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedValue = interaction.options.getFocused().toLowerCase();
+    const userId = interaction.user.id;
+    const alerts = AlertManager.getUserAlerts(userId);
+
+    const choices = alerts
+      .filter(a =>
+        a.id.toLowerCase().includes(focusedValue) ||
+        a.symbol.toLowerCase().includes(focusedValue)
+      )
+      .map(a => {
+        const direction = a.condition === 'ABOVE' ? '📈 >=' : '📉 <=';
+        return {
+          name: `${a.symbol} (${direction} ${a.targetPrice.toLocaleString()}) - ID: ${a.id}`,
+          value: a.id
+        };
+      })
+      .slice(0, 25);
+
+    await interaction.respond(choices);
+  },
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true }); // Make config commands ephemeral so they don't clutter the chat

@@ -60,6 +60,32 @@ client.once('ready', (c) => {
 
 // Handle Slash Command interactions
 client.on('interactionCreate', async (interaction: Interaction) => {
+  if (interaction.isAutocomplete()) {
+    const { commandName } = interaction;
+    try {
+      switch (commandName) {
+        case 'periodic':
+          if ('autocomplete' in PeriodicCommand) {
+            await PeriodicCommand.autocomplete(interaction);
+          }
+          break;
+        case 'volatility':
+          if ('autocomplete' in VolatilityCommand) {
+            await VolatilityCommand.autocomplete(interaction);
+          }
+          break;
+        case 'alert':
+          if ('autocomplete' in AlertCommand) {
+            await AlertCommand.autocomplete(interaction);
+          }
+          break;
+      }
+    } catch (error) {
+      console.error(`Error executing autocomplete for ${commandName}:`, error);
+    }
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName } = interaction;

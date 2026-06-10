@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, ChannelType } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, ChannelType, AutocompleteInteraction } from 'discord.js';
 import { FinanceService } from '../services/finance.js';
 import { PeriodicManager } from '../services/periodicManager.js';
 import { formatCurrency } from '../utils/format.js';
@@ -42,8 +42,33 @@ export const PeriodicCommand = {
           option.setName('id')
             .setDescription('ID update berkala yang ingin dihapus')
             .setRequired(true)
+            .setAutocomplete(true)
         )
     ),
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedValue = interaction.options.getFocused().toLowerCase();
+    const channelId = interaction.channelId;
+    const subs = PeriodicManager.getSubscriptions().filter(s => s.channelId === channelId);
+
+    const choices = subs
+      .filter(s =>
+        s.id.toLowerCase().includes(focusedValue) ||
+        s.symbol.toLowerCase().includes(focusedValue)
+      )
+      .map(s => {
+        const intervalLabel = s.interval === '24h' ? '24 Jam' :
+          s.interval.endsWith('h') ? `${s.interval.replace('h', '')} Jam` :
+          `${s.interval.replace('m', '')} Menit`;
+        return {
+          name: `${s.symbol} (Setiap ${intervalLabel}) - ID: ${s.id}`,
+          value: s.id
+        };
+      })
+      .slice(0, 25);
+
+    await interaction.respond(choices);
+  },
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });

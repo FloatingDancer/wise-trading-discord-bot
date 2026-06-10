@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
 import { FinanceService } from '../services/finance.js';
 import { VolatilityManager } from '../services/volatilityManager.js';
 import { formatCurrency } from '../utils/format.js';
@@ -32,8 +32,28 @@ export const VolatilityCommand = {
           option.setName('id')
             .setDescription('ID alarm persentase yang ingin dihapus')
             .setRequired(true)
+            .setAutocomplete(true)
         )
     ),
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedValue = interaction.options.getFocused().toLowerCase();
+    const userId = interaction.user.id;
+    const alerts = VolatilityManager.getUserAlerts(userId);
+
+    const choices = alerts
+      .filter(a =>
+        a.id.toLowerCase().includes(focusedValue) ||
+        a.symbol.toLowerCase().includes(focusedValue)
+      )
+      .map(a => ({
+        name: `${a.symbol} (±${a.percentage}%) - ID: ${a.id}`,
+        value: a.id
+      }))
+      .slice(0, 25);
+
+    await interaction.respond(choices);
+  },
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });

@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+
+# Environment variables (Sangat penting agar rahasia tidak bocor!)
+.env
+
+# Local JSON databases
+alerts.json
+subscriptions.json
+volatility.json
+
+# Logs & temp files
+*.log
+test-chart.png
+.pm2/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.project

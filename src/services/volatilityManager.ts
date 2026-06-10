@@ -192,10 +192,10 @@ export class VolatilityManager {
           { name: 'Pergerakan', value: `**${directionWord} (${formatPercentage(changePercent)})**`, inline: true },
           { name: 'Harga Sebelumnya (Baseline)', value: formatCurrency(basePrice, currency), inline: true },
           { name: 'Harga Sekarang', value: `**${formatCurrency(currentPrice, currency)}**`, inline: true },
-          { name: 'Status', value: `Baseline direset ke **${formatCurrency(currentPrice, currency)}**`, inline: false }
+          { name: 'Status', value: `🟢 **Harga Acuan Ter-update**: Baseline otomatis diperbarui ke **${formatCurrency(currentPrice, currency)}** untuk memantau pergerakan berikutnya.`, inline: false }
         )
         .setTimestamp()
-        .setFooter({ text: 'Wise Trading Volatility Alert System' });
+        .setFooter({ text: 'Wise Trading Volatility Alert System • Ter-update secara otomatis' });
 
       await channel.send({
         content: `<@${alert.userId}> 🚨`,

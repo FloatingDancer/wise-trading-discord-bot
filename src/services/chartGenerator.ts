@@ -17,8 +17,21 @@ export class ChartGenerator {
       throw new Error('No historical data points available to generate a chart.');
     }
 
-    // Format dates for labels
-    const labels = data.map((point) => {
+    // Limit data points to prevent exceeding QuickChart's free tier limit of 100 points
+    const MAX_POINTS = 90;
+    let sampledData = data;
+    if (data.length > MAX_POINTS) {
+      const step = Math.ceil(data.length / MAX_POINTS);
+      sampledData = data.filter((_, index) => index % step === 0);
+      
+      // Ensure the absolute last point is included to show the most recent price
+      if (data.length > 0 && sampledData[sampledData.length - 1] !== data[data.length - 1]) {
+        sampledData.push(data[data.length - 1]);
+      }
+    }
+
+    // Format dates for labels using sampledData
+    const labels = sampledData.map((point) => {
       const d = point.date;
       if (range === '1d') {
         // Just show hour:minute
@@ -32,7 +45,7 @@ export class ChartGenerator {
       }
     });
 
-    const prices = data.map((point) => point.close);
+    const prices = sampledData.map((point) => point.close);
     const startPrice = prices[0];
     const endPrice = prices[prices.length - 1];
     const isUp = endPrice >= startPrice;
@@ -54,7 +67,7 @@ export class ChartGenerator {
             borderColor: lineColor,
             borderWidth: 2,
             backgroundColor: backgroundColor,
-            pointRadius: data.length > 50 ? 0 : 2,
+            pointRadius: sampledData.length > 50 ? 0 : 2,
             pointHoverRadius: 5,
             lineTension: 0.1
           }
@@ -128,6 +141,12 @@ export class ChartGenerator {
 
       return Buffer.from(response.data);
     } catch (error: any) {
+      if (error.response && error.response.data) {
+        try {
+          const detail = Buffer.from(error.response.data).toString('utf-8');
+          console.error('QuickChart detailed error:', detail);
+        } catch (_) {}
+      }
       throw new Error(`Failed to generate chart image via QuickChart: ${error.message}`);
     }
   }

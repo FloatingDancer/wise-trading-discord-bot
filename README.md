@@ -1,4 +1,4 @@
-# Wise Trading Discord Bot 📊🪙📈
+# Wise Trading Discord Bot 
 
 Discord Bot untuk memantau nilai harga dan grafik dari **Mata Uang (Forex)**, **Cryptocurrency**, dan **Saham** secara real-time. Bot ini dibuat menggunakan **Node.js** dengan **TypeScript** (ES Modules) dan diintegrasikan dengan Yahoo Finance API serta QuickChart.
 

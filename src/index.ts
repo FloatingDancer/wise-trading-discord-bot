@@ -54,8 +54,8 @@ client.once('ready', (c) => {
     });
   }, 60000);
 
-  // Start periodic updates scheduler (every 5 minutes)
-  PeriodicManager.startScheduler(c, 300000);
+  // Start periodic updates scheduler (every 30 seconds)
+  PeriodicManager.startScheduler(c, 30000);
 });
 
 // Handle Slash Command interactions

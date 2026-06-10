@@ -9,7 +9,7 @@ export interface PeriodicSubscription {
   id: string;
   symbol: string;
   normalizedSymbol: string;
-  interval: '1h' | '4h' | '12h' | '24h';
+  interval: '1m' | '5m' | '10m' | '30m' | '1h' | '4h' | '12h' | '24h';
   channelId: string;
   lastSent: string;
   createdAt: string;
@@ -56,7 +56,7 @@ export class PeriodicManager {
    */
   static addSubscription(
     symbol: string,
-    interval: '1h' | '4h' | '12h' | '24h',
+    interval: '1m' | '5m' | '10m' | '30m' | '1h' | '4h' | '12h' | '24h',
     channelId: string
   ): PeriodicSubscription {
     const cleanSymbol = symbol.trim().toUpperCase();
@@ -143,12 +143,30 @@ export class PeriodicManager {
       
       // Determine threshold based on interval
       let thresholdMs = 3600000; // default 1 hour
-      if (sub.interval === '4h') thresholdMs = 4 * 3600000;
-      else if (sub.interval === '12h') thresholdMs = 12 * 3600000;
-      else if (sub.interval === '24h') thresholdMs = 24 * 3600000;
+      let graceMs = 60000; // default 1 minute grace
 
-      // Add a small 1-minute grace period to prevent strict boundary timing failures
-      if (diffMs >= (thresholdMs - 60000)) {
+      if (sub.interval === '1m') {
+        thresholdMs = 60000;
+        graceMs = 5000; // 5s grace
+      } else if (sub.interval === '5m') {
+        thresholdMs = 5 * 60000;
+        graceMs = 5000;
+      } else if (sub.interval === '10m') {
+        thresholdMs = 10 * 60000;
+        graceMs = 10000; // 10s grace
+      } else if (sub.interval === '30m') {
+        thresholdMs = 30 * 60000;
+        graceMs = 15000; // 15s grace
+      } else if (sub.interval === '4h') {
+        thresholdMs = 4 * 3600000;
+      } else if (sub.interval === '12h') {
+        thresholdMs = 12 * 3600000;
+      } else if (sub.interval === '24h') {
+        thresholdMs = 24 * 3600000;
+      }
+
+      // Check if duration elapsed
+      if (diffMs >= (thresholdMs - graceMs)) {
         console.log(`Sending periodic update for ${sub.symbol} to channel ${sub.channelId}...`);
         
         try {
@@ -180,11 +198,8 @@ export class PeriodicManager {
 
     // 2. Fetch Historical and Render Chart
     // Choose appropriate range for chart based on update interval
-    // 1h update -> 1d chart
-    // 4h or 12h update -> 5d chart
-    // 24h update -> 1m chart
     let range = '1m';
-    if (sub.interval === '1h') range = '1d';
+    if (sub.interval === '1h' || sub.interval === '1m' || sub.interval === '5m' || sub.interval === '10m' || sub.interval === '30m') range = '1d';
     else if (sub.interval === '4h' || sub.interval === '12h') range = '5d';
 
     const { quotes } = await FinanceService.getHistoricalData(sub.symbol, range);

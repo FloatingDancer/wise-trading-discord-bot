@@ -20,6 +20,10 @@ export const PeriodicCommand = {
             .setDescription('Interval pengiriman update')
             .setRequired(true)
             .addChoices(
+              { name: 'Setiap 1 Menit', value: '1m' },
+              { name: 'Setiap 5 Menit', value: '5m' },
+              { name: 'Setiap 10 Menit', value: '10m' },
+              { name: 'Setiap 30 Menit', value: '30m' },
               { name: 'Setiap 1 Jam', value: '1h' },
               { name: 'Setiap 4 Jam', value: '4h' },
               { name: 'Setiap 12 Jam', value: '12h' },
@@ -48,7 +52,7 @@ export const PeriodicCommand = {
 
     if (subcommand === 'add') {
       const symbol = interaction.options.getString('symbol', true);
-      const interval = interaction.options.getString('interval', true) as '1h' | '4h' | '12h' | '24h';
+      const interval = interaction.options.getString('interval', true) as '1m' | '5m' | '10m' | '30m' | '1h' | '4h' | '12h' | '24h';
 
       try {
         // Validate symbol
@@ -63,7 +67,11 @@ export const PeriodicCommand = {
           .addFields(
             { name: 'ID Jadwal', value: `\`${sub.id}\``, inline: true },
             { name: 'Aset', value: `${quote.symbol} (${quote.name})`, inline: true },
-            { name: 'Interval', value: `Setiap ${interval === '24h' ? '24 Jam' : interval.replace('h', ' Jam')}`, inline: true },
+            { name: 'Interval', value: `Setiap ${
+              interval === '24h' ? '24 Jam' : 
+              interval.endsWith('h') ? `${interval.replace('h', '')} Jam` : 
+              `${interval.replace('m', '')} Menit`
+            }`, inline: true },
             { name: 'Harga Saat Ini', value: formatCurrency(quote.price, quote.currency), inline: true }
           )
           .setTimestamp();
@@ -93,7 +101,11 @@ export const PeriodicCommand = {
       subs.forEach(s => {
         embed.addFields({
           name: `${s.symbol} (ID: \`${s.id}\`)`,
-          value: `Interval: **Setiap ${s.interval.replace('h', ' Jam')}**\nTerakhir dikirim: ${s.lastSent === new Date(0).toISOString() ? 'Belum pernah (Akan segera dikirim)' : `<t:${Math.floor(new Date(s.lastSent).getTime() / 1000)}:R>`}`,
+          value: `Interval: **Setiap ${
+            s.interval === '24h' ? '24 Jam' : 
+            s.interval.endsWith('h') ? `${s.interval.replace('h', '')} Jam` : 
+            `${s.interval.replace('m', '')} Menit`
+          }**\nTerakhir dikirim: ${s.lastSent === new Date(0).toISOString() ? 'Belum pernah (Akan segera dikirim)' : `<t:${Math.floor(new Date(s.lastSent).getTime() / 1000)}:R>`}`,
           inline: false
         });
       });

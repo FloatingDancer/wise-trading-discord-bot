@@ -41,6 +41,20 @@ export interface HistoricalPricePoint {
 export function normalizeSymbol(symbol: string): { normalized: string; type: 'STOCK' | 'CRYPTO' | 'FOREX' | 'UNKNOWN' } {
   const clean = symbol.trim().toUpperCase();
 
+  // 0. Common major indices mapping
+  if (clean === 'IHSG' || clean === 'JKSE') {
+    return { normalized: '^JKSE', type: 'STOCK' };
+  }
+  if (clean === 'NASDAQ') {
+    return { normalized: '^IXIC', type: 'STOCK' };
+  }
+  if (clean === 'SP500' || clean === 'S&P500') {
+    return { normalized: '^GSPC', type: 'STOCK' };
+  }
+  if (clean === 'DOW' || clean === 'DOWJONES') {
+    return { normalized: '^DJI', type: 'STOCK' };
+  }
+
   // 1. Forex checking (e.g., USD/IDR, EUR/USD, USDIDR)
   if (clean.includes('/') && clean.split('/').length === 2) {
     const parts = clean.split('/');
